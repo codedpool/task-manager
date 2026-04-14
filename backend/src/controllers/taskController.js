@@ -26,11 +26,11 @@ const getTasks = async (req, res) => {
     if (status) filter.status = status;
     if (priority) filter.priority = priority;
     if (dueDate) {
-      const date = new Date(dueDate);
-      filter.dueDate = {
-        $gte: new Date(date.setHours(0, 0, 0, 0)),
-        $lte: new Date(date.setHours(23, 59, 59, 999)),
-      };
+      const startOfDay = new Date(dueDate);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(dueDate);
+      endOfDay.setHours(23, 59, 59, 999);
+      filter.dueDate = { $gte: startOfDay, $lte: endOfDay };
     }
 
     const sortOrder = order === "asc" ? 1 : -1;

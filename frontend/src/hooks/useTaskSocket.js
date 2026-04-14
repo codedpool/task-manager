@@ -1,12 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
-import { useDispatch } from "react-redux";
 import { connectSocket, disconnectSocket } from "@/lib/socket";
 
 export default function useTaskSocket(onTaskEvent) {
-  const dispatch = useDispatch();
-
   useEffect(() => {
     const socket = connectSocket();
 

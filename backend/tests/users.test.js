@@ -18,6 +18,47 @@ beforeEach(async () => {
   userId = user.user._id;
 });
 
+describe("POST /api/users", () => {
+  it("should allow admin to create a user", async () => {
+    const res = await request(app)
+      .post("/api/users")
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ email: "new@example.com", password: "password123", role: "user" });
+
+    expect(res.status).toBe(201);
+    expect(res.body.email).toBe("new@example.com");
+    expect(res.body.role).toBe("user");
+  });
+
+  it("should reject duplicate email", async () => {
+    const res = await request(app)
+      .post("/api/users")
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ email: "admin@example.com", password: "password123" });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/already registered/i);
+  });
+
+  it("should reject missing password", async () => {
+    const res = await request(app)
+      .post("/api/users")
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ email: "nopass@example.com" });
+
+    expect(res.status).toBe(400);
+  });
+
+  it("should deny non-admin access", async () => {
+    const res = await request(app)
+      .post("/api/users")
+      .set("Authorization", `Bearer ${userToken}`)
+      .send({ email: "new@example.com", password: "password123" });
+
+    expect(res.status).toBe(403);
+  });
+});
+
 describe("GET /api/users", () => {
   it("should list users for admin", async () => {
     const res = await request(app)

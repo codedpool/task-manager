@@ -1,8 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+// Token is loaded via initializeAuth after hydration to avoid SSR mismatch
 const initialState = {
   user: null,
-  token: typeof window !== "undefined" ? localStorage.getItem("token") : null,
+  token: null,
   loading: false,
   error: null,
 };
@@ -13,6 +14,11 @@ const authSlice = createSlice({
   reducers: {
     setLoading(state, action) {
       state.loading = action.payload;
+    },
+    initializeAuth(state) {
+      if (typeof window !== "undefined") {
+        state.token = localStorage.getItem("token");
+      }
     },
     setCredentials(state, action) {
       state.user = action.payload.user;
@@ -33,5 +39,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { setLoading, setCredentials, setError, logout } = authSlice.actions;
+export const { initializeAuth, setLoading, setCredentials, setError, logout } = authSlice.actions;
 export default authSlice.reducer;

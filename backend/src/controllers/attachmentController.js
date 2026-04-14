@@ -69,7 +69,10 @@ const downloadAttachment = async (req, res) => {
       return res.status(404).json({ message: "Attachment not found" });
     }
 
-    const filePath = path.resolve(attachment.path);
+    // Handle both absolute (/uploads/...) and relative (uploads/...) stored paths
+    const filePath = path.isAbsolute(attachment.path)
+      ? attachment.path
+      : path.join(process.cwd(), attachment.path);
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ message: "File not found on disk" });
     }
