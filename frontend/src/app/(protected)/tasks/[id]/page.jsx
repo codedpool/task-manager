@@ -17,7 +17,7 @@ const statusColors = {
 };
 
 const priorityColors = {
-  low: "bg-gray-100 text-gray-700",
+  low: "bg-secondary text-foreground",
   medium: "bg-blue-100 text-blue-700",
   high: "bg-red-100 text-red-700",
 };
@@ -97,7 +97,7 @@ export default function TaskDetailPage({ params }) {
       )}
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">{task.title}</h1>
+        <h1 className="text-2xl font-bold text-foreground">{task.title}</h1>
         <div className="flex gap-2 mt-3 sm:mt-0">
           {canEdit && (
             <Link
@@ -119,7 +119,7 @@ export default function TaskDetailPage({ params }) {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-5">
+      <div className="bg-background rounded-lg shadow-sm border border-border p-6 space-y-5">
         <div className="flex flex-wrap gap-2">
           <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[task.status]}`}>
             {statusLabels[task.status]}
@@ -131,29 +131,29 @@ export default function TaskDetailPage({ params }) {
 
         {task.description && (
           <div>
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Description</h3>
-            <p className="text-gray-700 whitespace-pre-wrap">{task.description}</p>
+            <h3 className="text-sm font-medium text-muted-foreground mb-1">Description</h3>
+            <p className="text-foreground whitespace-pre-wrap">{task.description}</p>
           </div>
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
           <div>
-            <span className="text-gray-500">Due Date:</span>{" "}
-            <span className="font-medium text-gray-900">
+            <span className="text-muted-foreground">Due Date:</span>{" "}
+            <span className="font-medium text-foreground">
               {new Date(task.dueDate).toLocaleDateString()}
             </span>
           </div>
           <div>
-            <span className="text-gray-500">Assigned To:</span>{" "}
-            <span className="font-medium text-gray-900">{task.assignedTo?.email}</span>
+            <span className="text-muted-foreground">Assigned To:</span>{" "}
+            <span className="font-medium text-foreground">{task.assignedTo?.email}</span>
           </div>
           <div>
-            <span className="text-gray-500">Created By:</span>{" "}
-            <span className="font-medium text-gray-900">{task.createdBy?.email}</span>
+            <span className="text-muted-foreground">Created By:</span>{" "}
+            <span className="font-medium text-foreground">{task.createdBy?.email}</span>
           </div>
           <div>
-            <span className="text-gray-500">Created:</span>{" "}
-            <span className="font-medium text-gray-900">
+            <span className="text-muted-foreground">Created:</span>{" "}
+            <span className="font-medium text-foreground">
               {new Date(task.createdAt).toLocaleDateString()}
             </span>
           </div>
@@ -161,7 +161,7 @@ export default function TaskDetailPage({ params }) {
 
         {/* Attachments section */}
         <div>
-          <h3 className="text-sm font-medium text-gray-500 mb-2">
+          <h3 className="text-sm font-medium text-muted-foreground mb-2">
             Attachments ({task.attachments?.length || 0}/3)
           </h3>
 
@@ -170,14 +170,14 @@ export default function TaskDetailPage({ params }) {
               {task.attachments.map((file) => (
                 <div
                   key={file._id}
-                  className="flex items-center justify-between bg-gray-50 rounded-md px-3 py-2 border border-gray-200"
+                  className="flex items-center justify-between bg-muted rounded-md px-3 py-2 border border-border"
                 >
                   <div className="flex items-center gap-2 text-sm min-w-0">
                     <svg className="h-4 w-4 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                     </svg>
                     <span className="truncate">{file.originalName}</span>
-                    <span className="text-gray-400 shrink-0">
+                    <span className="text-muted-foreground shrink-0">
                       ({(file.size / 1024).toFixed(0)} KB)
                     </span>
                   </div>
@@ -196,7 +196,7 @@ export default function TaskDetailPage({ params }) {
                     <a
                       href={`${apiBase}/tasks/${id}/attachments/${file._id}`}
                       download={file.originalName}
-                      className="text-gray-500 text-sm hover:underline"
+                      className="text-muted-foreground text-sm hover:underline"
                     >
                       Download
                     </a>
@@ -217,7 +217,7 @@ export default function TaskDetailPage({ params }) {
       </div>
 
       <div className="mt-4">
-        <Link href="/tasks" className="text-sm text-gray-500 hover:text-gray-700">
+        <Link href="/tasks" className="text-sm text-muted-foreground hover:text-foreground">
           &larr; Back to tasks
         </Link>
       </div>

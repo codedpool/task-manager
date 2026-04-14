@@ -47,7 +47,7 @@ export default function DashboardPage() {
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
         <Link
           href="/tasks/new"
           className="mt-3 sm:mt-0 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition"
@@ -58,11 +58,11 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map((card) => (
-          <div key={card.label} className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+          <div key={card.label} className="bg-background rounded-lg shadow-sm border border-border p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">{card.label}</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">{card.value}</p>
+                <p className="text-sm text-muted-foreground">{card.label}</p>
+                <p className="text-3xl font-bold text-foreground mt-1">{card.value}</p>
               </div>
               <div className={`${card.color} h-10 w-10 rounded-full opacity-20`} />
             </div>

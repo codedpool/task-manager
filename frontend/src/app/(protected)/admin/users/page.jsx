@@ -102,7 +102,7 @@ export default function AdminUsersPage() {
     <AuthGuard adminOnly>
       <div>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
+          <h1 className="text-2xl font-bold text-foreground">User Management</h1>
           <button
             onClick={() => setShowCreateForm(!showCreateForm)}
             className="mt-3 sm:mt-0 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition"
@@ -113,8 +113,8 @@ export default function AdminUsersPage() {
 
         {/* Create user form */}
         {showCreateForm && (
-          <form onSubmit={handleCreateUser} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-            <h3 className="font-semibold text-sm text-gray-700 mb-3">Create New User</h3>
+          <form onSubmit={handleCreateUser} className="bg-background rounded-lg shadow-sm border border-border p-4 mb-6">
+            <h3 className="font-semibold text-sm text-foreground mb-3">Create New User</h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <input
@@ -122,7 +122,7 @@ export default function AdminUsersPage() {
                   placeholder="Email"
                   value={createForm.email}
                   onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 {createErrors.email && <p className="text-red-500 text-xs mt-1">{createErrors.email}</p>}
               </div>
@@ -132,7 +132,7 @@ export default function AdminUsersPage() {
                   placeholder="Password (min 6 chars)"
                   value={createForm.password}
                   onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 {createErrors.password && <p className="text-red-500 text-xs mt-1">{createErrors.password}</p>}
               </div>
@@ -140,7 +140,7 @@ export default function AdminUsersPage() {
                 <select
                   value={createForm.role}
                   onChange={(e) => setCreateForm({ ...createForm, role: e.target.value })}
-                  className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="user">User</option>
                   <option value="admin">Admin</option>
@@ -164,12 +164,12 @@ export default function AdminUsersPage() {
             placeholder="Search by email..."
             value={filters.search}
             onChange={(e) => setFilters({ ...filters, search: e.target.value, page: 1 })}
-            className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <select
             value={filters.role}
             onChange={(e) => setFilters({ ...filters, role: e.target.value, page: 1 })}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">All Roles</option>
             <option value="user">User</option>
@@ -178,7 +178,7 @@ export default function AdminUsersPage() {
           <select
             value={filters.sortBy}
             onChange={(e) => setFilters({ ...filters, sortBy: e.target.value })}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="createdAt">Sort: Created</option>
             <option value="email">Sort: Email</option>
@@ -186,7 +186,7 @@ export default function AdminUsersPage() {
           <select
             value={filters.order}
             onChange={(e) => setFilters({ ...filters, order: e.target.value })}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="desc">Newest</option>
             <option value="asc">Oldest</option>
@@ -194,37 +194,37 @@ export default function AdminUsersPage() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
+        <div className="bg-background rounded-lg shadow-sm border border-border overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-muted border-b border-border">
               <tr>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Email</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Role</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Created</th>
-                <th className="text-right px-4 py-3 font-medium text-gray-600">Actions</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Email</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Role</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Created</th>
+                <th className="text-right px-4 py-3 font-medium text-muted-foreground">Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="text-center py-8 text-gray-400">Loading...</td>
+                  <td colSpan={4} className="text-center py-8 text-muted-foreground">Loading...</td>
                 </tr>
               ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="text-center py-8 text-gray-400">No users found</td>
+                  <td colSpan={4} className="text-center py-8 text-muted-foreground">No users found</td>
                 </tr>
               ) : (
                 items.map((u) => (
-                  <tr key={u._id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="px-4 py-3 text-gray-900">{u.email}</td>
+                  <tr key={u._id} className="border-b border-border hover:bg-muted">
+                    <td className="px-4 py-3 text-foreground">{u.email}</td>
                     <td className="px-4 py-3">
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                        u.role === "admin" ? "bg-purple-100 text-purple-700" : "bg-gray-100 text-gray-600"
+                        u.role === "admin" ? "bg-purple-100 text-purple-700" : "bg-secondary text-muted-foreground"
                       }`}>
                         {u.role}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-500">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {new Date(u.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-4 py-3 text-right space-x-2">
@@ -254,17 +254,17 @@ export default function AdminUsersPage() {
             <button
               onClick={() => setFilters({ ...filters, page: currentPage - 1 })}
               disabled={currentPage <= 1}
-              className="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50 hover:bg-gray-50"
+              className="px-3 py-1 border border-border rounded-md text-sm disabled:opacity-50 hover:bg-muted"
             >
               Prev
             </button>
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-muted-foreground">
               Page {currentPage} of {totalPages}
             </span>
             <button
               onClick={() => setFilters({ ...filters, page: currentPage + 1 })}
               disabled={currentPage >= totalPages}
-              className="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50 hover:bg-gray-50"
+              className="px-3 py-1 border border-border rounded-md text-sm disabled:opacity-50 hover:bg-muted"
             >
               Next
             </button>

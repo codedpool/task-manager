@@ -11,7 +11,9 @@ import useTaskSocket from "@/hooks/useTaskSocket";
 
 export default function TaskListPage() {
   const dispatch = useDispatch();
-  const { items, loading, totalPages, currentPage } = useSelector((state) => state.tasks);
+  const { items, loading, totalPages, currentPage } = useSelector(
+    (state) => state.tasks,
+  );
   const [filters, setFilters] = useState({
     status: "",
     priority: "",
@@ -34,21 +36,26 @@ export default function TaskListPage() {
         if (val !== "") params[key] = val;
       });
       const { data } = await api.get("/tasks", { params });
-      dispatch(setTasks({
-        tasks: data.tasks,
-        totalPages: data.totalPages,
-        currentPage: data.currentPage,
-      }));
+      dispatch(
+        setTasks({
+          tasks: data.tasks,
+          totalPages: data.totalPages,
+          currentPage: data.currentPage,
+        }),
+      );
     } catch {
       dispatch(setError("Failed to load tasks"));
       setLocalError("Failed to load tasks");
     }
   };
 
-  fetchTasksRef.current = fetchTasks;
+  useEffect(() => {
+    fetchTasksRef.current = fetchTasks;
+  });
 
   useEffect(() => {
     fetchTasks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
   // Re-fetch on real-time socket events
@@ -64,10 +71,10 @@ export default function TaskListPage() {
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Tasks</h1>
+        <h1 className="text-2xl font-bold text-foreground">Tasks</h1>
         <button
           onClick={() => setFiltersOpen(!filtersOpen)}
-          className="mt-3 sm:mt-0 inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm rounded-md text-gray-600 hover:bg-gray-50 md:hidden"
+          className="mt-3 sm:mt-0 inline-flex items-center px-3 py-1.5 border border-border text-sm rounded-md text-muted-foreground hover:bg-muted md:hidden"
         >
           Filters {filtersOpen ? "▲" : "▼"}
         </button>
@@ -75,7 +82,9 @@ export default function TaskListPage() {
 
       <div className="flex flex-col md:flex-row gap-6">
         {/* Filter sidebar — always visible on desktop, toggleable on mobile */}
-        <div className={`${filtersOpen ? "block" : "hidden"} md:block md:w-56 shrink-0`}>
+        <div
+          className={`${filtersOpen ? "block" : "hidden"} md:block md:w-56 shrink-0`}
+        >
           <TaskFilters filters={filters} setFilters={setFilters} />
         </div>
 
@@ -85,7 +94,9 @@ export default function TaskListPage() {
           ) : error ? (
             <p className="text-red-500 text-center py-10">{error}</p>
           ) : items.length === 0 ? (
-            <p className="text-gray-500 text-center py-10">No tasks found</p>
+            <p className="text-muted-foreground text-center py-10">
+              No tasks found
+            </p>
           ) : (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -100,27 +111,29 @@ export default function TaskListPage() {
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage <= 1}
-                    className="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50 hover:bg-gray-50"
+                    className="px-3 py-1 border border-border rounded-md text-sm disabled:opacity-50 hover:bg-muted"
                   >
                     Prev
                   </button>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => handlePageChange(p)}
-                      className={`px-3 py-1 border rounded-md text-sm ${
-                        p === currentPage
-                          ? "bg-blue-600 text-white border-blue-600"
-                          : "border-gray-300 hover:bg-gray-50"
-                      }`}
-                    >
-                      {p}
-                    </button>
-                  ))}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (p) => (
+                      <button
+                        key={p}
+                        onClick={() => handlePageChange(p)}
+                        className={`px-3 py-1 border rounded-md text-sm ${
+                          p === currentPage
+                            ? "bg-blue-600 text-white border-blue-600"
+                            : "border-border hover:bg-muted"
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    ),
+                  )}
                   <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage >= totalPages}
-                    className="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50 hover:bg-gray-50"
+                    className="px-3 py-1 border border-border rounded-md text-sm disabled:opacity-50 hover:bg-muted"
                   >
                     Next
                   </button>

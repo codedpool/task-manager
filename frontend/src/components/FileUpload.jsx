@@ -68,7 +68,7 @@ export default function FileUpload({ taskId, currentCount, onUploadComplete }) {
         handleFiles(e.dataTransfer.files);
       }}
       className={`border-2 border-dashed rounded-lg p-4 text-center transition ${
-        dragOver ? "border-blue-500 bg-blue-50" : "border-gray-300"
+        dragOver ? "border-blue-500 bg-blue-50" : "border-border"
       }`}
     >
       <input
@@ -82,7 +82,7 @@ export default function FileUpload({ taskId, currentCount, onUploadComplete }) {
       />
       <label
         htmlFor="file-upload"
-        className="cursor-pointer text-sm text-gray-500"
+        className="cursor-pointer text-sm text-muted-foreground"
       >
         {uploading ? (
           <span className="flex items-center justify-center gap-2">
@@ -93,7 +93,7 @@ export default function FileUpload({ taskId, currentCount, onUploadComplete }) {
           <>
             <span className="text-blue-600 font-medium">Click to upload</span> or drag & drop
             <br />
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-muted-foreground">
               PDF only, max 5MB per file ({remaining} slot{remaining !== 1 ? "s" : ""} remaining)
             </span>
           </>

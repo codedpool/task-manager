@@ -1,5 +1,8 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+
 export default function TaskFilters({ filters, setFilters }) {
   const handleChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value, page: 1 }));
@@ -17,23 +20,24 @@ export default function TaskFilters({ filters, setFilters }) {
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-4">
+    <div className="bg-card rounded-lg border border-border p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-sm text-gray-700">Filters</h3>
-        <button
+        <h3 className="font-semibold text-sm text-foreground">Filters</h3>
+        <Button
+          variant="link"
           onClick={clearFilters}
-          className="text-xs text-blue-600 hover:underline"
+          className="text-xs p-0 h-auto text-primary"
         >
           Clear all
-        </button>
+        </Button>
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
+        <Label className="block text-xs font-medium text-muted-foreground mb-1">Status</Label>
         <select
           value={filters.status}
           onChange={(e) => handleChange("status", e.target.value)}
-          className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full border border-input bg-background text-foreground rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
         >
           <option value="">All</option>
           <option value="todo">To Do</option>
@@ -43,11 +47,11 @@ export default function TaskFilters({ filters, setFilters }) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1">Priority</label>
+        <Label className="block text-xs font-medium text-muted-foreground mb-1">Priority</Label>
         <select
           value={filters.priority}
           onChange={(e) => handleChange("priority", e.target.value)}
-          className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full border border-input bg-background text-foreground rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
         >
           <option value="">All</option>
           <option value="low">Low</option>
@@ -57,11 +61,11 @@ export default function TaskFilters({ filters, setFilters }) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1">Sort By</label>
+        <Label className="block text-xs font-medium text-muted-foreground mb-1">Sort By</Label>
         <select
           value={filters.sortBy}
           onChange={(e) => handleChange("sortBy", e.target.value)}
-          className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full border border-input bg-background text-foreground rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
         >
           <option value="createdAt">Created Date</option>
           <option value="dueDate">Due Date</option>
@@ -71,11 +75,11 @@ export default function TaskFilters({ filters, setFilters }) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1">Order</label>
+        <Label className="block text-xs font-medium text-muted-foreground mb-1">Order</Label>
         <select
           value={filters.order}
           onChange={(e) => handleChange("order", e.target.value)}
-          className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full border border-input bg-background text-foreground rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
         >
           <option value="desc">Newest First</option>
           <option value="asc">Oldest First</option>

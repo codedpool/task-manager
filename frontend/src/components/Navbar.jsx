@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { logout } from "@/store/authSlice";
+import { Button } from "@/components/ui/button";
 
 export default function Navbar() {
   const { user } = useSelector((state) => state.auth);
@@ -31,10 +32,10 @@ export default function Navbar() {
   const isActive = (href) => pathname === href;
 
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <nav className="bg-background border-b border-border sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-14 items-center">
-          <Link href="/dashboard" className="text-lg font-bold text-blue-600">
+          <Link href="/dashboard" className="text-lg font-bold text-primary">
             TaskManager
           </Link>
 
@@ -46,31 +47,32 @@ export default function Navbar() {
                 href={link.href}
                 className={`text-sm font-medium transition ${
                   isActive(link.href)
-                    ? "text-blue-600"
-                    : "text-gray-600 hover:text-gray-900"
+                    ? "text-primary"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {link.label}
               </Link>
             ))}
-            <div className="flex items-center gap-3 ml-4 pl-4 border-l border-gray-200">
-              <span className="text-sm text-gray-500">{user?.email}</span>
-              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+            <div className="flex items-center gap-3 ml-4 pl-4 border-l border-border">
+              <span className="text-sm text-muted-foreground">{user?.email}</span>
+              <span className="text-xs bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full">
                 {user?.role}
               </span>
-              <button
+              <Button
+                variant="ghost"
                 onClick={handleLogout}
-                className="text-sm text-red-600 hover:text-red-700 font-medium"
+                className="text-sm text-destructive hover:text-destructive hover:bg-destructive/10 font-medium px-2 h-8"
               >
                 Logout
-              </button>
+              </Button>
             </div>
           </div>
 
           {/* Mobile hamburger */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="md:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100"
+            className="md:hidden p-2 rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground"
           >
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               {menuOpen ? (
@@ -85,7 +87,7 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="md:hidden border-t border-gray-200 bg-white">
+        <div className="md:hidden border-t border-border bg-background">
           <div className="px-4 py-3 space-y-2">
             {links.map((link) => (
               <Link
@@ -94,18 +96,18 @@ export default function Navbar() {
                 onClick={() => setMenuOpen(false)}
                 className={`block px-3 py-2 rounded-md text-sm font-medium ${
                   isActive(link.href)
-                    ? "bg-blue-50 text-blue-600"
-                    : "text-gray-600 hover:bg-gray-50"
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                 }`}
               >
                 {link.label}
               </Link>
             ))}
-            <div className="border-t border-gray-200 pt-2 mt-2">
-              <p className="px-3 py-1 text-sm text-gray-500">{user?.email} ({user?.role})</p>
+            <div className="border-t border-border pt-2 mt-2">
+              <p className="px-3 py-1 text-sm text-muted-foreground">{user?.email} ({user?.role})</p>
               <button
                 onClick={handleLogout}
-                className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md"
+                className="w-full text-left px-3 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-md"
               >
                 Logout
               </button>

@@ -6,13 +6,13 @@ import TaskCard from "@/components/TaskCard";
 describe("SkeletonLoader", () => {
   it("renders skeleton items", () => {
     const { container } = render(<SkeletonLoader count={3} />);
-    const items = container.querySelectorAll(".animate-pulse");
+    const items = container.querySelectorAll('[data-testid="skeleton-card"]');
     expect(items.length).toBe(3);
   });
 
   it("renders default count when no prop", () => {
     const { container } = render(<SkeletonLoader />);
-    const items = container.querySelectorAll(".animate-pulse");
+    const items = container.querySelectorAll('[data-testid="skeleton-card"]');
     expect(items.length).toBe(3);
   });
 });
@@ -20,14 +20,18 @@ describe("SkeletonLoader", () => {
 describe("ErrorBoundary", () => {
   // Suppress console.error for error boundary test
   const originalError = console.error;
-  beforeAll(() => { console.error = jest.fn(); });
-  afterAll(() => { console.error = originalError; });
+  beforeAll(() => {
+    console.error = jest.fn();
+  });
+  afterAll(() => {
+    console.error = originalError;
+  });
 
   it("renders children when no error", () => {
     render(
       <ErrorBoundary>
         <div>Test Content</div>
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     expect(screen.getByText("Test Content")).toBeInTheDocument();
   });
@@ -40,12 +44,14 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary>
         <ThrowError />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
 
     expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
     expect(screen.getByText(/test error/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /try again/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /try again/i }),
+    ).toBeInTheDocument();
   });
 });
 
