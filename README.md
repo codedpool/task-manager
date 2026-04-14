@@ -115,11 +115,14 @@ task-manager/
 
 ### File Attachments
 - Upload up to 3 PDF files per task (max 5MB each)
-- Drag-and-drop upload UI
+- Attach files during task creation or editing (drag-and-drop in the task form)
+- Also upload additional files from the task detail page
 - Inline PDF viewer modal
 - File download with correct Content-Type streaming
+- **Storage:** Local disk via Multer. For production, swap to S3 by replacing the Multer storage engine with `multer-s3` — no controller changes needed
 
 ### User Management (Admin)
+- Admin can create new users with email, password, and role
 - Admin-only user list with search, role filter, sorting, and pagination
 - Toggle user roles, delete users
 
@@ -156,6 +159,7 @@ task-manager/
 ### Users (Admin only)
 | Method | Endpoint | Description | Auth |
 |---|---|---|---|
+| POST | `/api/users` | Create new user | Admin |
 | GET | `/api/users` | List users (filter/sort/paginate) | Admin |
 | GET | `/api/users/:id` | Get user by ID | Admin |
 | PUT | `/api/users/:id` | Update user | Admin |
