@@ -4,35 +4,41 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import api from "@/lib/api";
 import SkeletonLoader from "@/components/SkeletonLoader";
+import useTaskSocket from "@/hooks/useTaskSocket";
 
 export default function DashboardPage() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const fetchStats = async () => {
+    try {
+      const [todoRes, inProgressRes, doneRes, allRes] = await Promise.all([
+        api.get("/tasks?status=todo&limit=1"),
+        api.get("/tasks?status=in_progress&limit=1"),
+        api.get("/tasks?status=done&limit=1"),
+        api.get("/tasks?limit=1"),
+      ]);
+      setStats({
+        total: allRes.data.totalTasks,
+        todo: todoRes.data.totalTasks,
+        inProgress: inProgressRes.data.totalTasks,
+        done: doneRes.data.totalTasks,
+      });
+    } catch {
+      setError("Failed to load dashboard data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const [todoRes, inProgressRes, doneRes, allRes] = await Promise.all([
-          api.get("/tasks?status=todo&limit=1"),
-          api.get("/tasks?status=in_progress&limit=1"),
-          api.get("/tasks?status=done&limit=1"),
-          api.get("/tasks?limit=1"),
-        ]);
-        setStats({
-          total: allRes.data.totalTasks,
-          todo: todoRes.data.totalTasks,
-          inProgress: inProgressRes.data.totalTasks,
-          done: doneRes.data.totalTasks,
-        });
-      } catch {
-        setError("Failed to load dashboard data");
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchStats();
   }, []);
+
+  useTaskSocket(() => {
+    fetchStats();
+  });
 
   if (loading) return <SkeletonLoader count={4} />;
   if (error) return <p className="text-red-500 text-center py-10">{error}</p>;
@@ -58,13 +64,20 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map((card) => (
-          <div key={card.label} className="bg-background rounded-lg shadow-sm border border-border p-5">
+          <div
+            key={card.label}
+            className="bg-background rounded-lg shadow-sm border border-border p-5"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">{card.label}</p>
-                <p className="text-3xl font-bold text-foreground mt-1">{card.value}</p>
+                <p className="text-3xl font-bold text-foreground mt-1">
+                  {card.value}
+                </p>
               </div>
-              <div className={`${card.color} h-10 w-10 rounded-full opacity-20`} />
+              <div
+                className={`${card.color} h-10 w-10 rounded-full opacity-20`}
+              />
             </div>
           </div>
         ))}

@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import api from "@/lib/api";
 import PDFViewer from "@/components/PDFViewer";
 import FileUpload from "@/components/FileUpload";
+import useTaskSocket from "@/hooks/useTaskSocket";
 
 const statusColors = {
   todo: "bg-yellow-100 text-yellow-800",
@@ -52,6 +53,15 @@ export default function TaskDetailPage({ params }) {
   useEffect(() => {
     fetchTask();
   }, [id]);
+
+  useTaskSocket((event, eventData) => {
+    if (event === "updated" && eventData._id === id) {
+      setTask(eventData);
+    } else if (event === "deleted" && eventData._id === id) {
+      toast.error("This task was deleted.");
+      router.push("/tasks");
+    }
+  });
 
   const handleDelete = async () => {
     if (!confirm("Are you sure you want to delete this task?")) return;
@@ -121,18 +131,26 @@ export default function TaskDetailPage({ params }) {
 
       <div className="bg-background rounded-lg shadow-sm border border-border p-6 space-y-5">
         <div className="flex flex-wrap gap-2">
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[task.status]}`}>
+          <span
+            className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[task.status]}`}
+          >
             {statusLabels[task.status]}
           </span>
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${priorityColors[task.priority]}`}>
+          <span
+            className={`px-3 py-1 rounded-full text-sm font-medium ${priorityColors[task.priority]}`}
+          >
             {task.priority} priority
           </span>
         </div>
 
         {task.description && (
           <div>
-            <h3 className="text-sm font-medium text-muted-foreground mb-1">Description</h3>
-            <p className="text-foreground whitespace-pre-wrap">{task.description}</p>
+            <h3 className="text-sm font-medium text-muted-foreground mb-1">
+              Description
+            </h3>
+            <p className="text-foreground whitespace-pre-wrap">
+              {task.description}
+            </p>
           </div>
         )}
 
@@ -145,11 +163,15 @@ export default function TaskDetailPage({ params }) {
           </div>
           <div>
             <span className="text-muted-foreground">Assigned To:</span>{" "}
-            <span className="font-medium text-foreground">{task.assignedTo?.email}</span>
+            <span className="font-medium text-foreground">
+              {task.assignedTo?.email}
+            </span>
           </div>
           <div>
             <span className="text-muted-foreground">Created By:</span>{" "}
-            <span className="font-medium text-foreground">{task.createdBy?.email}</span>
+            <span className="font-medium text-foreground">
+              {task.createdBy?.email}
+            </span>
           </div>
           <div>
             <span className="text-muted-foreground">Created:</span>{" "}
@@ -173,8 +195,18 @@ export default function TaskDetailPage({ params }) {
                   className="flex items-center justify-between bg-muted rounded-md px-3 py-2 border border-border"
                 >
                   <div className="flex items-center gap-2 text-sm min-w-0">
-                    <svg className="h-4 w-4 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    <svg
+                      className="h-4 w-4 text-red-500 shrink-0"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                      />
                     </svg>
                     <span className="truncate">{file.originalName}</span>
                     <span className="text-muted-foreground shrink-0">
@@ -217,7 +249,10 @@ export default function TaskDetailPage({ params }) {
       </div>
 
       <div className="mt-4">
-        <Link href="/tasks" className="text-sm text-muted-foreground hover:text-foreground">
+        <Link
+          href="/tasks"
+          className="text-sm text-muted-foreground hover:text-foreground"
+        >
           &larr; Back to tasks
         </Link>
       </div>

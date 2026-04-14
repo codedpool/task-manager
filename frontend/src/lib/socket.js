@@ -1,8 +1,11 @@
 import { io } from "socket.io-client";
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:5000";
+const SOCKET_URL =
+  process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
+  "http://localhost:5000";
 
 let socket = null;
+let connectionCount = 0;
 
 export const getSocket = () => {
   if (!socket) {
@@ -15,10 +18,17 @@ export const getSocket = () => {
 
 export const connectSocket = () => {
   const s = getSocket();
+  connectionCount++;
   if (!s.connected) s.connect();
   return s;
 };
 
 export const disconnectSocket = () => {
-  if (socket?.connected) socket.disconnect();
+  connectionCount--;
+  if (connectionCount <= 0) {
+    connectionCount = 0;
+    if (socket?.connected) {
+      socket.disconnect();
+    }
+  }
 };
