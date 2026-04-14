@@ -1,13 +1,20 @@
 const express = require("express");
 const router = express.Router();
+const {
+  getTasks,
+  getTaskById,
+  createTask,
+  updateTask,
+  deleteTask,
+} = require("../controllers/taskController");
+const { verifyToken } = require("../middleware/auth");
 
-// Placeholder — implemented in Phase 2
-// GET    /api/tasks
-// POST   /api/tasks
-// GET    /api/tasks/:id
-// PUT    /api/tasks/:id
-// DELETE /api/tasks/:id
-// POST   /api/tasks/:id/attachments
-// GET    /api/tasks/:id/attachments/:fileId
+router.use(verifyToken);
+
+router.get("/", getTasks);
+router.post("/", createTask);
+router.get("/:id", getTaskById);
+router.put("/:id", updateTask);
+router.delete("/:id", deleteTask);
 
 module.exports = router;

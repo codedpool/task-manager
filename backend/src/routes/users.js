@@ -1,10 +1,18 @@
 const express = require("express");
 const router = express.Router();
+const {
+  getUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
+} = require("../controllers/userController");
+const { verifyToken, isAdmin } = require("../middleware/auth");
 
-// Placeholder — implemented in Phase 2
-// GET    /api/users
-// GET    /api/users/:id
-// PUT    /api/users/:id
-// DELETE /api/users/:id
+router.use(verifyToken, isAdmin);
+
+router.get("/", getUsers);
+router.get("/:id", getUserById);
+router.put("/:id", updateUser);
+router.delete("/:id", deleteUser);
 
 module.exports = router;
