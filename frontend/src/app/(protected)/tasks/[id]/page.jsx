@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import api from "@/lib/api";
+import PDFViewer from "@/components/PDFViewer";
+import FileUpload from "@/components/FileUpload";
 
 const statusColors = {
   todo: "bg-yellow-100 text-yellow-800",
@@ -33,21 +35,23 @@ export default function TaskDetailPage({ params }) {
   const [task, setTask] = useState(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  const [viewingPdf, setViewingPdf] = useState(null);
+
+  const fetchTask = async () => {
+    try {
+      const { data } = await api.get(`/tasks/${id}`);
+      setTask(data);
+    } catch {
+      toast.error("Failed to load task");
+      router.push("/tasks");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchTask = async () => {
-      try {
-        const { data } = await api.get(`/tasks/${id}`);
-        setTask(data);
-      } catch {
-        toast.error("Failed to load task");
-        router.push("/tasks");
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchTask();
-  }, [id, router]);
+  }, [id]);
 
   const handleDelete = async () => {
     if (!confirm("Are you sure you want to delete this task?")) return;
@@ -80,8 +84,18 @@ export default function TaskDetailPage({ params }) {
 
   if (!task) return null;
 
+  const apiBase = process.env.NEXT_PUBLIC_API_URL;
+
   return (
     <div className="max-w-3xl mx-auto">
+      {viewingPdf && (
+        <PDFViewer
+          url={viewingPdf.url}
+          filename={viewingPdf.filename}
+          onClose={() => setViewingPdf(null)}
+        />
+      )}
+
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">{task.title}</h1>
         <div className="flex gap-2 mt-3 sm:mt-0">
@@ -146,12 +160,13 @@ export default function TaskDetailPage({ params }) {
         </div>
 
         {/* Attachments section */}
-        {task.attachments?.length > 0 && (
-          <div>
-            <h3 className="text-sm font-medium text-gray-500 mb-2">
-              Attachments ({task.attachments.length}/3)
-            </h3>
-            <div className="space-y-2">
+        <div>
+          <h3 className="text-sm font-medium text-gray-500 mb-2">
+            Attachments ({task.attachments?.length || 0}/3)
+          </h3>
+
+          {task.attachments?.length > 0 && (
+            <div className="space-y-2 mb-3">
               {task.attachments.map((file) => (
                 <div
                   key={file._id}
@@ -166,24 +181,44 @@ export default function TaskDetailPage({ params }) {
                       ({(file.size / 1024).toFixed(0)} KB)
                     </span>
                   </div>
-                  <a
-                    href={`${process.env.NEXT_PUBLIC_API_URL}/tasks/${id}/attachments/${file._id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 text-sm hover:underline shrink-0 ml-2"
-                  >
-                    View
-                  </a>
+                  <div className="flex items-center gap-2 shrink-0 ml-2">
+                    <button
+                      onClick={() =>
+                        setViewingPdf({
+                          url: `${apiBase}/tasks/${id}/attachments/${file._id}`,
+                          filename: file.originalName,
+                        })
+                      }
+                      className="text-blue-600 text-sm hover:underline"
+                    >
+                      View
+                    </button>
+                    <a
+                      href={`${apiBase}/tasks/${id}/attachments/${file._id}`}
+                      download={file.originalName}
+                      className="text-gray-500 text-sm hover:underline"
+                    >
+                      Download
+                    </a>
+                  </div>
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          )}
+
+          {canEdit && (
+            <FileUpload
+              taskId={id}
+              currentCount={task.attachments?.length || 0}
+              onUploadComplete={fetchTask}
+            />
+          )}
+        </div>
       </div>
 
       <div className="mt-4">
         <Link href="/tasks" className="text-sm text-gray-500 hover:text-gray-700">
-          ← Back to tasks
+          &larr; Back to tasks
         </Link>
       </div>
     </div>

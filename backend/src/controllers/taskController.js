@@ -1,4 +1,5 @@
 const Task = require("../models/Task");
+const { getIO } = require("../socket");
 
 const getTasks = async (req, res) => {
   try {
@@ -100,6 +101,7 @@ const createTask = async (req, res) => {
       { path: "createdBy", select: "email role" },
     ]);
 
+    getIO().emit("task:created", populated);
     res.status(201).json(populated);
   } catch (error) {
     if (error.name === "ValidationError") {
@@ -140,6 +142,7 @@ const updateTask = async (req, res) => {
       { path: "createdBy", select: "email role" },
     ]);
 
+    getIO().emit("task:updated", populated);
     res.json(populated);
   } catch (error) {
     if (error.name === "ValidationError") {
@@ -166,6 +169,7 @@ const deleteTask = async (req, res) => {
     }
 
     await task.deleteOne();
+    getIO().emit("task:deleted", { _id: req.params.id });
     res.json({ message: "Task deleted" });
   } catch (error) {
     res.status(500).json({ message: "Server error" });

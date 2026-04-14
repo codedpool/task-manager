@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import api from "@/lib/api";
 import { setTasks, setLoading, setError } from "@/store/tasksSlice";
 import TaskCard from "@/components/TaskCard";
 import TaskFilters from "@/components/TaskFilters";
 import SkeletonLoader from "@/components/SkeletonLoader";
+import useTaskSocket from "@/hooks/useTaskSocket";
 
 export default function TaskListPage() {
   const dispatch = useDispatch();
@@ -21,6 +22,8 @@ export default function TaskListPage() {
   });
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [error, setLocalError] = useState(null);
+
+  const fetchTasksRef = useRef(null);
 
   const fetchTasks = async () => {
     dispatch(setLoading(true));
@@ -42,9 +45,17 @@ export default function TaskListPage() {
     }
   };
 
+  fetchTasksRef.current = fetchTasks;
+
   useEffect(() => {
     fetchTasks();
   }, [filters]);
+
+  // Re-fetch on real-time socket events
+  const handleSocketEvent = useCallback(() => {
+    fetchTasksRef.current?.();
+  }, []);
+  useTaskSocket(handleSocketEvent);
 
   const handlePageChange = (page) => {
     setFilters((prev) => ({ ...prev, page }));
