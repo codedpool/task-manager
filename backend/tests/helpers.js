@@ -6,7 +6,7 @@ const app = require("../src/app");
 let mongoServer;
 
 async function setupDB() {
-  process.env.MONGOMS_MD5_CHECK = '0';
+  process.env.MONGOMS_MD5_CHECK = "0";
   mongoServer = await MongoMemoryServer.create();
   process.env.JWT_SECRET = "test-secret";
   process.env.UPLOAD_DIR = "./tests/uploads";
@@ -26,7 +26,11 @@ async function clearDB() {
   }
 }
 
-async function createUser(email = "user@example.com", password = "password123", role = "user") {
+async function createUser(
+  email = "user@example.com",
+  password = "password123",
+  role = "user",
+) {
   const res = await request(app)
     .post("/api/auth/register")
     .send({ email, password, role });

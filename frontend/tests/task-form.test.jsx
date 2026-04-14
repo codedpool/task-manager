@@ -38,19 +38,21 @@ function renderWithStore(ui) {
 describe("TaskForm", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    api.get.mockResolvedValue({ data: { users: [{ _id: "u1", email: "u1@e.com" }] } });
+    api.get.mockResolvedValue({
+      data: { users: [{ _id: "u1", email: "u1@e.com" }] },
+    });
     api.post.mockResolvedValue({ data: { _id: "new-task-id" } });
     api.put.mockResolvedValue({ data: { _id: "edited-task-id" } });
   });
 
-  it("submits the form properly when all valid data is provided", async () => { 
+  it("submits the form properly when all valid data is provided", async () => {
     const user = userEvent.setup();
     renderWithStore(<TaskForm />);
 
-    const titleInput = await screen.findByPlaceholderText(/task title/i);       
+    const titleInput = await screen.findByPlaceholderText(/task title/i);
     await user.type(titleInput, "Test Task Valid");
 
-    const descInput = screen.getByPlaceholderText(/Optional description/i);     
+    const descInput = screen.getByPlaceholderText(/Optional description/i);
     await user.type(descInput, "Desc");
 
     const statusSelect = screen.getByLabelText(/status/i);
@@ -65,17 +67,20 @@ describe("TaskForm", () => {
     const userSelect = screen.getByLabelText(/assign to/i);
     await user.selectOptions(userSelect, "u1");
 
-    await user.click(screen.getByRole("button", { name: /create task/i }));     
+    await user.click(screen.getByRole("button", { name: /create task/i }));
 
     await waitFor(() => {
-      expect(api.post).toHaveBeenCalledWith("/tasks", expect.objectContaining({ 
-        title: "Test Task Valid",
-        description: "Desc",
-        status: "in_progress",
-        priority: "high",
-        dueDate: "2026-10-10",
-        assignedTo: "u1",
-      }));
+      expect(api.post).toHaveBeenCalledWith(
+        "/tasks",
+        expect.objectContaining({
+          title: "Test Task Valid",
+          description: "Desc",
+          status: "in_progress",
+          priority: "high",
+          dueDate: "2026-10-10",
+          assignedTo: "u1",
+        }),
+      );
     });
   });
 
@@ -88,30 +93,32 @@ describe("TaskForm", () => {
   it("displays error when submitting without required fields", async () => {
     const user = userEvent.setup();
     renderWithStore(<TaskForm />);
-    
+
     // Submit empty form
     await user.click(screen.getByRole("button", { name: /create task/i }));
     await waitFor(() => {
       expect(screen.getByText(/Title is required/i)).toBeInTheDocument();
     });
   });
-  
+
   it("handles file uploads properly", async () => {
     const user = userEvent.setup();
     renderWithStore(<TaskForm />);
-    
-    const file = new File(['dummy content'], 'test.pdf', { type: 'application/pdf' });
+
+    const file = new File(["dummy content"], "test.pdf", {
+      type: "application/pdf",
+    });
     const fileInput = document.querySelector('input[type="file"]');
-    
+
     await user.upload(fileInput, file);
-    
+
     await waitFor(() => {
       expect(screen.getByText(/test.pdf/i)).toBeInTheDocument();
     });
-    
+
     // Test removing file
     await user.click(screen.getByRole("button", { name: /remove/i }));
-    
+
     await waitFor(() => {
       expect(screen.queryByText(/test.pdf/i)).not.toBeInTheDocument();
     });
