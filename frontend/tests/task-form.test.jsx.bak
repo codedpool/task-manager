@@ -1,0 +1,145 @@
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { Provider } from "react-redux";
+import { configureStore } from "@reduxjs/toolkit";
+import authReducer from "@/store/authSlice";
+import tasksReducer from "@/store/tasksSlice";
+import usersReducer from "@/store/usersSlice";
+import TaskForm from "@/components/TaskForm";
+import api from "@/lib/api";
+import { useRouter } from "next/navigation";
+
+// Mock api
+jest.mock("@/lib/api", () => ({
+  __esModule: true,
+  default: {
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+  },
+}));
+
+jest.mock("next/navigation", () => ({
+  useRouter: jest.fn(() => ({ push: jest.fn() })),
+}));
+
+function createStore() {
+  return configureStore({
+    reducer: { auth: authReducer, tasks: tasksReducer, users: usersReducer },
+  });
+}
+
+function renderWithStore(ui) {
+  const store = createStore();
+  return render(<Provider store={store}>{ui}</Provider>);
+}
+
+describe("TaskForm", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    api.get.mockResolvedValue({ data: { users: [{ _id: "u1", email: "u1@e.com" }] } });
+    api.post.mockResolvedValue({ data: { _id: "new-task-id" } });
+    api.put.mockResolvedValue({ data: { _id: "edited-task-id" } });
+  });
+
+  it("renders create form fields", async () => {
+    renderWithStore(<TaskForm />);
+    expect(await screen.findByRole("button", { name: /create task/i })).toBeInTheDocument();
+    expect(screen.getByText(/title/i)).toBeInTheDocument();
+  });
+
+  it("submits the form properly when all valid data is provided", async () => {
+    const user = userEvent.setup();
+    renderWithStore(<TaskForm />);
+
+    const titleInput = await screen.findByPlaceholderText(/task title/i);
+    await user.type(titleInput, "Test Task Valid");
+
+    const descInput = screen.getByPlaceholderText(/Optional description/i);
+    await user.type(descInput, "Desc");
+
+    // Status is 'todo' by default, priority 'medium'
+    const statusSelect = screen.getByLabelText(/status/i);
+    await user.selectOptions(statusSelect, "in_progress");
+
+    const prioritySelect = screen.getByLabelText(/priority/i);
+    await user.selectOptions(prioritySelect, "high");
+
+    // Type date
+    const dateInput = screen.getByLabelText(/due date/i);
+    await user.type(dateInput, "2026-10-10");
+
+    // After users load
+    const userSelect = screen.getByLabelText(/assign to/i);
+    await user.selectOptions(userSelect, "u1");
+
+    await user.click(screen.getByRole("button", { name: /create task/i }));
+
+    await waitFor(() => {
+      expect(api.post).toHaveBeenCalledWith("/tasks", expect.objectContaining({
+        title: "Test Task Valid",
+        description: "Desc",
+        status: "in_progress",
+        priority: "high",
+        dueDate: "2026-10-10",
+        assignedTo: "u1",
+      }));
+    });
+  });
+
+  it("can test edit mode and load existing task", async () => {
+    api.get.mockImplementation((url) => {
+      if (url.includes("/tasks/123")) {
+        return Promise.resolve({ data: { 
+          title: "Old Task",
+          status: "todo",
+          priority: "low",
+          dueDate: "2026-05-05T00:00:00.000Z",
+          assignedTo: { _id: "u1" },
+          attachments: [],
+        }});
+      }
+      return Promise.resolve({ data: { users: [{ _id: "u1", email: "e@e.com" }] } });
+    });
+
+    const user = userEvent.setup();
+    renderWithStore(<TaskForm taskId="123" />);
+
+    // Load old task
+    const saveBtn = await screen.findByRole("button", { name: /save changes/i });
+    expect(screen.getByPlaceholderText(/task title/i)).toHaveValue("Old Task");
+
+    const titleInput = screen.getByPlaceholderText(/task title/i);
+    await user.clear(titleInput);
+    await user.type(titleInput, "Updated Task");
+
+    await user.click(saveBtn);
+
+    await waitFor(() => {
+      expect(api.put).toHaveBeenCalledWith("/tasks/123", expect.objectContaining({
+        title: "Updated Task"
+      }));
+    });
+  });
+
+  it("can handle file attachments logic", async () => {
+    const user = userEvent.setup();
+    renderWithStore(<TaskForm />);
+
+    await screen.findByRole("button", { name: /create task/i });
+    
+    // In jsdom we can't easily trigger the drop event directly in testing-library
+    // But we can trigger the input change
+    const fileInput = screen.getByTestId("file-upload-input") || screen.getByLabelText(/Click to select/i);
+    if(fileInput) {
+       const file = new File(["dummy pdf content"], "test.pdf", { type: "application/pdf" });
+       await user.upload(fileInput, file);
+       
+       expect(await screen.findByText(/test.pdf/)).toBeInTheDocument();
+       const rmvbtn = screen.getByRole("button", { name: /remove/i });
+       await user.click(rmvbtn);
+       expect(screen.queryByText(/test.pdf/)).not.toBeInTheDocument();
+    }
+  });
+
+});

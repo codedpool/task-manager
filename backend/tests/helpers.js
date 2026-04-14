@@ -6,6 +6,7 @@ const app = require("../src/app");
 let mongoServer;
 
 async function setupDB() {
+  process.env.MONGOMS_MD5_CHECK = '0';
   mongoServer = await MongoMemoryServer.create();
   process.env.JWT_SECRET = "test-secret";
   process.env.UPLOAD_DIR = "./tests/uploads";

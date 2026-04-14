@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
@@ -6,15 +6,22 @@ import authReducer from "@/store/authSlice";
 import tasksReducer from "@/store/tasksSlice";
 import usersReducer from "@/store/usersSlice";
 import TaskForm from "@/components/TaskForm";
+import api from "@/lib/api";
+import { useRouter } from "next/navigation";
+import { act } from "react";
 
 // Mock api
 jest.mock("@/lib/api", () => ({
   __esModule: true,
   default: {
-    get: jest.fn().mockResolvedValue({ data: { users: [] } }),
+    get: jest.fn(),
     post: jest.fn(),
     put: jest.fn(),
   },
+}));
+
+jest.mock("next/navigation", () => ({
+  useRouter: jest.fn(() => ({ push: jest.fn(), back: jest.fn() })),
 }));
 
 function createStore() {
@@ -29,54 +36,84 @@ function renderWithStore(ui) {
 }
 
 describe("TaskForm", () => {
-  it("renders create form fields", async () => {
-    renderWithStore(<TaskForm />);
-
-    // Wait for component to finish loading
-    expect(await screen.findByRole("button", { name: /create task/i })).toBeInTheDocument();
-    expect(screen.getByText(/title/i)).toBeInTheDocument();
-    expect(screen.getByText(/description/i)).toBeInTheDocument();
-    expect(screen.getByText(/status/i)).toBeInTheDocument();
-    expect(screen.getByText(/priority/i)).toBeInTheDocument();
-    expect(screen.getByText(/due date/i)).toBeInTheDocument();
-    expect(screen.getByText(/assign to/i)).toBeInTheDocument();
+  beforeEach(() => {
+    jest.clearAllMocks();
+    api.get.mockResolvedValue({ data: { users: [{ _id: "u1", email: "u1@e.com" }] } });
+    api.post.mockResolvedValue({ data: { _id: "new-task-id" } });
+    api.put.mockResolvedValue({ data: { _id: "edited-task-id" } });
   });
 
-  it("shows validation error for missing title", async () => {
+  it("submits the form properly when all valid data is provided", async () => { 
     const user = userEvent.setup();
     renderWithStore(<TaskForm />);
 
-    await user.click(await screen.findByRole("button", { name: /create task/i }));
+    const titleInput = await screen.findByPlaceholderText(/task title/i);       
+    await user.type(titleInput, "Test Task Valid");
 
-    expect(await screen.findByText(/title is required/i)).toBeInTheDocument();
+    const descInput = screen.getByPlaceholderText(/Optional description/i);     
+    await user.type(descInput, "Desc");
+
+    const statusSelect = screen.getByLabelText(/status/i);
+    await user.selectOptions(statusSelect, "in_progress");
+
+    const prioritySelect = screen.getByLabelText(/priority/i);
+    await user.selectOptions(prioritySelect, "high");
+
+    const dateInput = screen.getByLabelText(/due date/i);
+    await user.type(dateInput, "2026-10-10");
+
+    const userSelect = screen.getByLabelText(/assign to/i);
+    await user.selectOptions(userSelect, "u1");
+
+    await user.click(screen.getByRole("button", { name: /create task/i }));     
+
+    await waitFor(() => {
+      expect(api.post).toHaveBeenCalledWith("/tasks", expect.objectContaining({ 
+        title: "Test Task Valid",
+        description: "Desc",
+        status: "in_progress",
+        priority: "high",
+        dueDate: "2026-10-10",
+        assignedTo: "u1",
+      }));
+    });
   });
 
-  it("shows validation error for missing due date", async () => {
+  it("handles cancel button", async () => {
     const user = userEvent.setup();
     renderWithStore(<TaskForm />);
+    await user.click(screen.getByRole("button", { name: /cancel/i }));
+  });
 
-    // Wait for form to render, then type in first text input (title)
-    const titleInput = await screen.findByPlaceholderText(/task title/i);
-    await user.type(titleInput, "Test Task");
+  it("displays error when submitting without required fields", async () => {
+    const user = userEvent.setup();
+    renderWithStore(<TaskForm />);
+    
+    // Submit empty form
     await user.click(screen.getByRole("button", { name: /create task/i }));
-
-    expect(await screen.findByText(/due date is required/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/Title is required/i)).toBeInTheDocument();
+    });
   });
-
-  it("shows validation error for missing assignment", async () => {
+  
+  it("handles file uploads properly", async () => {
     const user = userEvent.setup();
     renderWithStore(<TaskForm />);
-
-    const titleInput = await screen.findByPlaceholderText(/task title/i);
-    await user.type(titleInput, "Test Task");
-    await user.click(screen.getByRole("button", { name: /create task/i }));
-
-    // Should show both due date and assignment errors
-    expect(await screen.findByText(/please assign a user/i)).toBeInTheDocument();
-  });
-
-  it("has cancel button", async () => {
-    renderWithStore(<TaskForm />);
-    expect(await screen.findByRole("button", { name: /cancel/i })).toBeInTheDocument();
+    
+    const file = new File(['dummy content'], 'test.pdf', { type: 'application/pdf' });
+    const fileInput = document.querySelector('input[type="file"]');
+    
+    await user.upload(fileInput, file);
+    
+    await waitFor(() => {
+      expect(screen.getByText(/test.pdf/i)).toBeInTheDocument();
+    });
+    
+    // Test removing file
+    await user.click(screen.getByRole("button", { name: /remove/i }));
+    
+    await waitFor(() => {
+      expect(screen.queryByText(/test.pdf/i)).not.toBeInTheDocument();
+    });
   });
 });

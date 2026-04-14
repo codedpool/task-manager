@@ -1,0 +1,7 @@
+{
+  "name": "task-manager-root",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "npm run test --prefix backend && npm run test --prefix frontend"
+  }
+}
