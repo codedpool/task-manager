@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const {
+  createUser,
   getUsers,
   getUserById,
   updateUser,
@@ -44,6 +45,38 @@ router.use(verifyToken, isAdmin);
  *       403:
  *         description: Admin access required
  */
+/**
+ * @swagger
+ * /api/users:
+ *   post:
+ *     summary: Create a new user (admin only)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *                 minLength: 6
+ *               role:
+ *                 type: string
+ *                 enum: [user, admin]
+ *     responses:
+ *       201:
+ *         description: User created
+ *       400:
+ *         description: Validation error or email already registered
+ */
+router.post("/", createUser);
+
 router.get("/", getUsers);
 
 /**

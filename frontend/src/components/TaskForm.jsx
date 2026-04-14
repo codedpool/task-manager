@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import api from "@/lib/api";
@@ -22,14 +22,18 @@ export default function TaskForm({ taskId = null }) {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(isEdit);
 
+  // File upload state
+  const [files, setFiles] = useState([]);
+  const [existingAttachments, setExistingAttachments] = useState([]);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef(null);
+
   useEffect(() => {
-    // Fetch users for assignment dropdown
     const fetchUsers = async () => {
       try {
         const { data } = await api.get("/users?limit=100");
         setUsers(data.users);
       } catch {
-        // If not admin, fall back to just showing current user from /auth/me
         try {
           const { data } = await api.get("/auth/me");
           setUsers([data]);
@@ -54,6 +58,7 @@ export default function TaskForm({ taskId = null }) {
           dueDate: data.dueDate ? data.dueDate.split("T")[0] : "",
           assignedTo: data.assignedTo?._id || "",
         });
+        setExistingAttachments(data.attachments || []);
       } catch {
         toast.error("Failed to load task");
         router.push("/tasks");
@@ -63,6 +68,37 @@ export default function TaskForm({ taskId = null }) {
     };
     fetchTask();
   }, [taskId, isEdit, router]);
+
+  const maxFiles = 3 - existingAttachments.length;
+
+  const handleFiles = (newFiles) => {
+    const incoming = Array.from(newFiles);
+    const valid = [];
+
+    for (const f of incoming) {
+      if (f.type !== "application/pdf") {
+        toast.error(`${f.name} is not a PDF`);
+        continue;
+      }
+      if (f.size > 5 * 1024 * 1024) {
+        toast.error(`${f.name} exceeds 5MB limit`);
+        continue;
+      }
+      valid.push(f);
+    }
+
+    const total = files.length + valid.length;
+    if (total > maxFiles) {
+      toast.error(`Can only attach ${maxFiles} more file(s)`);
+      return;
+    }
+
+    setFiles((prev) => [...prev, ...valid]);
+  };
+
+  const removeFile = (index) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const validate = () => {
     const errs = {};
@@ -82,14 +118,28 @@ export default function TaskForm({ taskId = null }) {
 
     setLoading(true);
     try {
+      let task;
       if (isEdit) {
-        await api.put(`/tasks/${taskId}`, form);
+        const { data } = await api.put(`/tasks/${taskId}`, form);
+        task = data;
         toast.success("Task updated");
       } else {
-        await api.post("/tasks", form);
+        const { data } = await api.post("/tasks", form);
+        task = data;
         toast.success("Task created");
       }
-      router.push("/tasks");
+
+      // Upload files if any were selected
+      if (files.length > 0) {
+        const formData = new FormData();
+        files.forEach((f) => formData.append("files", f));
+        await api.post(`/tasks/${task._id}/attachments`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        toast.success(`${files.length} file(s) attached`);
+      }
+
+      router.push(`/tasks/${task._id}`);
     } catch (err) {
       toast.error(err.response?.data?.message || "Something went wrong");
     } finally {
@@ -188,6 +238,80 @@ export default function TaskForm({ taskId = null }) {
           </select>
           {errors.assignedTo && <p className="text-red-500 text-sm mt-1">{errors.assignedTo}</p>}
         </div>
+      </div>
+
+      {/* File upload section */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Attachments ({existingAttachments.length + files.length}/3)
+        </label>
+
+        {/* Show existing attachments in edit mode */}
+        {existingAttachments.length > 0 && (
+          <div className="space-y-1 mb-2">
+            {existingAttachments.map((att) => (
+              <div key={att._id} className="flex items-center gap-2 text-sm text-gray-500 bg-gray-50 rounded px-3 py-1.5 border border-gray-200">
+                <svg className="h-4 w-4 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                <span className="truncate">{att.originalName}</span>
+                <span className="text-gray-400 text-xs">({(att.size / 1024).toFixed(0)} KB)</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Show queued new files */}
+        {files.length > 0 && (
+          <div className="space-y-1 mb-2">
+            {files.map((f, i) => (
+              <div key={i} className="flex items-center justify-between text-sm bg-blue-50 rounded px-3 py-1.5 border border-blue-200">
+                <div className="flex items-center gap-2 min-w-0">
+                  <svg className="h-4 w-4 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                  <span className="truncate">{f.name}</span>
+                  <span className="text-gray-400 text-xs">({(f.size / 1024).toFixed(0)} KB)</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeFile(i)}
+                  className="text-red-500 hover:text-red-700 text-xs ml-2 shrink-0"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Drop zone */}
+        {files.length < maxFiles && (
+          <div
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFiles(e.dataTransfer.files); }}
+            className={`border-2 border-dashed rounded-lg p-3 text-center transition cursor-pointer ${
+              dragOver ? "border-blue-500 bg-blue-50" : "border-gray-300"
+            }`}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf"
+              multiple
+              onChange={(e) => { handleFiles(e.target.files); e.target.value = ""; }}
+              className="hidden"
+            />
+            <p className="text-sm text-gray-500">
+              <span className="text-blue-600 font-medium">Click to upload</span> or drag & drop
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              PDF only, max 5MB per file ({maxFiles - files.length} slot{maxFiles - files.length !== 1 ? "s" : ""} remaining)
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="flex gap-3 pt-2">

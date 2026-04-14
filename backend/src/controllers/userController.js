@@ -1,5 +1,25 @@
 const User = require("../models/User");
 
+const createUser = async (req, res) => {
+  try {
+    const { email, password, role } = req.body;
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already registered" });
+    }
+
+    const user = await User.create({ email, password, role });
+    res.status(201).json({ _id: user._id, email: user.email, role: user.role });
+  } catch (error) {
+    if (error.name === "ValidationError") {
+      const messages = Object.values(error.errors).map((e) => e.message);
+      return res.status(400).json({ message: messages.join(", ") });
+    }
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 const getUsers = async (req, res) => {
   try {
     const {
@@ -94,4 +114,4 @@ const deleteUser = async (req, res) => {
   }
 };
 
-module.exports = { getUsers, getUserById, updateUser, deleteUser };
+module.exports = { createUser, getUsers, getUserById, updateUser, deleteUser };

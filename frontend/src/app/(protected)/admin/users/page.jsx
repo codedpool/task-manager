@@ -19,6 +19,12 @@ export default function AdminUsersPage() {
     limit: 10,
   });
 
+  // Create user form state
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [createForm, setCreateForm] = useState({ email: "", password: "", role: "user" });
+  const [createErrors, setCreateErrors] = useState({});
+  const [creating, setCreating] = useState(false);
+
   const fetchUsers = async () => {
     dispatch(setLoading(true));
     try {
@@ -63,10 +69,93 @@ export default function AdminUsersPage() {
     }
   };
 
+  const validateCreateForm = () => {
+    const errs = {};
+    if (!createForm.email.trim()) errs.email = "Email is required";
+    else if (!/^\S+@\S+\.\S+$/.test(createForm.email)) errs.email = "Invalid email format";
+    if (!createForm.password) errs.password = "Password is required";
+    else if (createForm.password.length < 6) errs.password = "Password must be at least 6 characters";
+    setCreateErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handleCreateUser = async (e) => {
+    e.preventDefault();
+    if (!validateCreateForm()) return;
+
+    setCreating(true);
+    try {
+      await api.post("/users", createForm);
+      toast.success("User created");
+      setCreateForm({ email: "", password: "", role: "user" });
+      setCreateErrors({});
+      setShowCreateForm(false);
+      fetchUsers();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to create user");
+    } finally {
+      setCreating(false);
+    }
+  };
+
   return (
     <AuthGuard adminOnly>
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">User Management</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
+          <button
+            onClick={() => setShowCreateForm(!showCreateForm)}
+            className="mt-3 sm:mt-0 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition"
+          >
+            {showCreateForm ? "Cancel" : "+ New User"}
+          </button>
+        </div>
+
+        {/* Create user form */}
+        {showCreateForm && (
+          <form onSubmit={handleCreateUser} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+            <h3 className="font-semibold text-sm text-gray-700 mb-3">Create New User</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={createForm.email}
+                  onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                {createErrors.email && <p className="text-red-500 text-xs mt-1">{createErrors.email}</p>}
+              </div>
+              <div>
+                <input
+                  type="password"
+                  placeholder="Password (min 6 chars)"
+                  value={createForm.password}
+                  onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                {createErrors.password && <p className="text-red-500 text-xs mt-1">{createErrors.password}</p>}
+              </div>
+              <div className="flex gap-2">
+                <select
+                  value={createForm.role}
+                  onChange={(e) => setCreateForm({ ...createForm, role: e.target.value })}
+                  className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
+                </select>
+                <button
+                  type="submit"
+                  disabled={creating}
+                  className="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 disabled:opacity-50 transition"
+                >
+                  {creating ? "..." : "Create"}
+                </button>
+              </div>
+            </div>
+          </form>
+        )}
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
